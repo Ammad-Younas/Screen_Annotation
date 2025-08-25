@@ -1,6 +1,5 @@
 import sys
 import os
-from datetime import datetime
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QSlider, QToolButton, QColorDialog, QInputDialog, QGraphicsView,
@@ -17,7 +16,6 @@ class CustomGraphicsView(QGraphicsView):
         super().__init__(parent)
         self.overlay_instance = overlay_instance
         self.setStyleSheet("background: transparent")
-        # PyQt6: use QFrame.Shape.NoFrame instead of QGraphicsView.NoFrame
         self.setFrameStyle(QFrame.Shape.NoFrame)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -66,8 +64,8 @@ class ProfessionalScreenOverlay:
 
         # Setup control window
         self.control_window = QWidget()
-        self.control_window.setWindowTitle("Professional Screen Annotator")
-        self.control_window.setFixedSize(320, 520)
+        self.control_window.setWindowTitle("MADIrwx Screen Annotator")
+        self.control_window.setFixedSize(900, 150)
         self.control_window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
         self.setup_professional_ui()
 
@@ -101,12 +99,12 @@ class ProfessionalScreenOverlay:
 
         # Show welcome message
         QMessageBox.information(self.control_window, "Professional Screen Annotator",
-                                "Welcome to Professional Screen Annotator!\\n\\n"
-                                "Features:\\n"
-                                "• Multiple drawing tools with icons\\n"
-                                "• Professional UI design\\n"
-                                "• Undo/Redo functionality\\n"
-                                "• Keyboard shortcuts\\n\\n"
+                                "Welcome to Professional Screen Annotator!\n\n"
+                                "Features:\n"
+                                "• Multiple drawing tools with icons\n"
+                                "• Professional UI design\n"
+                                "• Undo/Redo functionality\n"
+                                "• Keyboard shortcuts\n\n"
                                 "Click 'Start Drawing' to begin!")
 
     def load_icons(self):
@@ -130,36 +128,37 @@ class ProfessionalScreenOverlay:
                 self.icons[tool] = QIcon()  # Placeholder
 
     def setup_professional_ui(self):
-        main_layout = QVBoxLayout(self.control_window)
+        main_layout = QHBoxLayout(self.control_window)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(15, 15, 15, 15)
 
+        # Left section - Header and buttons
+        left_section = QVBoxLayout()
+        
         # Header
         header_label = QLabel("Screen Annotator Pro")
-        header_label.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        header_label.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         header_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(header_label)
+        left_section.addWidget(header_label)
 
-        subtitle_label = QLabel("Professional Drawing Tools")
-        subtitle_label.setFont(QFont("Segoe UI", 10))
-        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(subtitle_label)
-
-        # Toggle button
+        # Toggle and Clear buttons
+        button_layout = QHBoxLayout()
         self.overlay_btn = QPushButton("Start Drawing")
-        self.overlay_btn.setStyleSheet("background-color: #27ae60; color: white; font: bold 12pt 'Segoe UI'; padding: 10px; border-radius: 5px;")
+        self.overlay_btn.setStyleSheet("background-color: #27ae60; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
         self.overlay_btn.clicked.connect(self.toggle_overlay)
-        main_layout.addWidget(self.overlay_btn)
+        button_layout.addWidget(self.overlay_btn)
 
-        # Clear button
         clear_btn = QPushButton("Clear All")
         clear_btn.setStyleSheet("background-color: #e74c3c; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
         clear_btn.clicked.connect(self.clear_screen)
-        main_layout.addWidget(clear_btn)
+        button_layout.addWidget(clear_btn)
+        
+        left_section.addLayout(button_layout)
+        main_layout.addLayout(left_section)
 
-        # Tools group
+        # Middle section - Drawing Tools
         tools_group = QGroupBox("Drawing Tools")
-        tools_group.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        tools_group.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
         tools_layout = QHBoxLayout()
         tools_layout.setSpacing(5)
 
@@ -181,85 +180,57 @@ class ProfessionalScreenOverlay:
         tools_group.setLayout(tools_layout)
         main_layout.addWidget(tools_group)
 
-        # Settings group
-        settings_group = QGroupBox("Settings")
-        settings_group.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
-        settings_layout = QVBoxLayout()
-
+        # Right section - Settings and Actions
+        right_section = QVBoxLayout()
+        
+        # Settings
+        settings_layout = QHBoxLayout()
+        
         # Color
-        color_layout = QHBoxLayout()
         color_label = QLabel("Color:")
-        color_label.setFont(QFont("Segoe UI", 10))
-        color_layout.addWidget(color_label)
+        color_label.setFont(QFont("Segoe UI", 9))
+        settings_layout.addWidget(color_label)
         self.color_button = QPushButton()
-        self.color_button.setFixedSize(40, 20)
+        self.color_button.setFixedSize(30, 20)
         self.color_button.setStyleSheet(f"background-color: {self.current_color.name()}; border-radius: 3px;")
         self.color_button.clicked.connect(self.choose_color)
-        color_layout.addStretch()
-        color_layout.addWidget(self.color_button)
-        settings_layout.addLayout(color_layout)
+        settings_layout.addWidget(self.color_button)
 
         # Size
-        size_layout = QHBoxLayout()
         size_label = QLabel("Size:")
-        size_label.setFont(QFont("Segoe UI", 10))
-        size_layout.addWidget(size_label)
+        size_label.setFont(QFont("Segoe UI", 9))
+        settings_layout.addWidget(size_label)
         self.size_slider = QSlider(Qt.Orientation.Horizontal)
         self.size_slider.setMinimum(1)
         self.size_slider.setMaximum(20)
         self.size_slider.setValue(self.brush_size)
         self.size_slider.valueChanged.connect(self.update_size)
-        size_layout.addWidget(self.size_slider)
+        self.size_slider.setFixedWidth(80)
+        settings_layout.addWidget(self.size_slider)
         self.size_value = QLabel(str(self.brush_size))
-        self.size_value.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        size_layout.addWidget(self.size_value)
-        settings_layout.addLayout(size_layout)
+        self.size_value.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        settings_layout.addWidget(self.size_value)
+        
+        right_section.addLayout(settings_layout)
 
-        settings_group.setLayout(settings_layout)
-        main_layout.addWidget(settings_group)
-
-        # Actions group
-        actions_group = QGroupBox("Actions")
-        actions_group.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
-        actions_layout = QVBoxLayout()
-
-        # Undo/Redo
-        undo_redo_layout = QHBoxLayout()
+        # Actions - Undo/Redo
+        actions_layout = QHBoxLayout()
         self.undo_btn = QPushButton("Undo")
         self.undo_btn.setIcon(self.icons.get('undo'))
-        self.undo_btn.setStyleSheet("background-color: #95a5a6; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.undo_btn.setStyleSheet("background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
         self.undo_btn.setEnabled(False)
         self.undo_btn.clicked.connect(self.undo)
-        undo_redo_layout.addWidget(self.undo_btn)
+        actions_layout.addWidget(self.undo_btn)
 
         self.redo_btn = QPushButton("Redo")
         self.redo_btn.setIcon(self.icons.get('redo'))
-        self.redo_btn.setStyleSheet("background-color: #95a5a6; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.redo_btn.setStyleSheet("background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
         self.redo_btn.setEnabled(False)
         self.redo_btn.clicked.connect(self.redo)
-        undo_redo_layout.addWidget(self.redo_btn)
-        actions_layout.addLayout(undo_redo_layout)
-
-        # Save
-        save_btn = QPushButton("📸 Save Screenshot")
-        save_btn.setStyleSheet("background-color: #9b59b6; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
-        save_btn.clicked.connect(self.save_screenshot)
-        actions_layout.addWidget(save_btn)
-
-        actions_group.setLayout(actions_layout)
-        main_layout.addWidget(actions_group)
-
-        # Shortcuts
-        shortcuts_group = QGroupBox("Keyboard Shortcuts")
-        shortcuts_group.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
-        shortcuts_text = QTextEdit()
-        shortcuts_text.setReadOnly(True)
-        shortcuts_text.setPlainText("F1: Toggle overlay\nF2: Clear screen\nESC: Hide overlay\nCtrl+Z: Undo\nCtrl+Y: Redo")
-        shortcuts_text.setFixedHeight(80)
-        shortcuts_layout = QVBoxLayout()
-        shortcuts_layout.addWidget(shortcuts_text)
-        shortcuts_group.setLayout(shortcuts_layout)
-        main_layout.addWidget(shortcuts_group)
+        actions_layout.addWidget(self.redo_btn)
+        
+        right_section.addLayout(actions_layout)
+        main_layout.addLayout(right_section)
 
     def select_tool(self, tool):
         for t, btn in self.tool_buttons.items():
@@ -415,9 +386,9 @@ class ProfessionalScreenOverlay:
 
     def update_undo_redo_buttons(self):
         self.undo_btn.setEnabled(bool(self.undo_stack))
-        self.undo_btn.setStyleSheet("background-color: #3498db; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.undo_stack else "background-color: #95a5a6; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.undo_btn.setStyleSheet("background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.undo_stack else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
         self.redo_btn.setEnabled(bool(self.redo_stack))
-        self.redo_btn.setStyleSheet("background-color: #3498db; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.redo_stack else "background-color: #95a5a6; color: white; font: 9pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.redo_btn.setStyleSheet("background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.redo_stack else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
 
     def clear_screen(self):
         reply = QMessageBox.question(self.control_window, "Clear All", "Are you sure you want to clear all drawings?")
@@ -426,20 +397,6 @@ class ProfessionalScreenOverlay:
             for item in list(self.drawings):
                 self.scene.removeItem(item)
             self.drawings.clear()
-
-    def save_screenshot(self):
-        was_active = self.overlay_active
-        if was_active:
-            self.hide_overlay()
-        QApplication.processEvents()
-        screen = QGuiApplication.primaryScreen()
-        screenshot = screen.grabWindow(0)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"screen_annotation_{timestamp}.png"
-        screenshot.save(filename, "png")
-        QMessageBox.information(self.control_window, "Screenshot Saved", f"Screenshot saved as:\\n{filename}")
-        if was_active:
-            self.show_overlay()
 
     def key_press_event(self, event):
         if event.key() == Qt.Key.Key_F1:
