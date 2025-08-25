@@ -3,8 +3,7 @@ import os
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QSlider, QToolButton, QColorDialog, QInputDialog, QGraphicsView,
-    QGraphicsScene, QGraphicsPathItem, QGraphicsRectItem, QGraphicsEllipseItem,
-    QGraphicsTextItem, QGroupBox, QMessageBox, QFrame
+    QGraphicsScene,QGroupBox, QMessageBox, QFrame
 )
 from PyQt6.QtCore import Qt, QPointF, QRectF
 from PyQt6.QtGui import (
