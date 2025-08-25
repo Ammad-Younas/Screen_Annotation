@@ -4,11 +4,11 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QSlider, QToolButton, QColorDialog, QInputDialog, QGraphicsView,
     QGraphicsScene, QGraphicsPathItem, QGraphicsRectItem, QGraphicsEllipseItem,
-    QGraphicsTextItem, QGroupBox, QTextEdit, QMessageBox, QFrame
+    QGraphicsTextItem, QGroupBox, QMessageBox, QFrame
 )
 from PyQt6.QtCore import Qt, QPointF, QRectF
 from PyQt6.QtGui import (
-    QPen, QPainterPath, QColor, QFont, QPalette, QGuiApplication, QIcon, QKeyEvent
+    QPen, QPainterPath, QColor, QFont, QPalette, QGuiApplication, QIcon
 )
 
 class CustomGraphicsView(QGraphicsView):
@@ -29,6 +29,7 @@ class CustomGraphicsView(QGraphicsView):
 
     def mouseReleaseEvent(self, event):
         self.overlay_instance.mouseReleaseEvent(event)
+
 
 class ProfessionalScreenOverlay:
     def __init__(self):
@@ -52,7 +53,7 @@ class ProfessionalScreenOverlay:
         palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
         self.app.setPalette(palette)
 
-        # Drawing state
+        # Drawing stateclear
         self.current_color = QColor(255, 0, 0)
         self.brush_size = 3
         self.current_tool = "pen"
@@ -65,8 +66,18 @@ class ProfessionalScreenOverlay:
         # Setup control window
         self.control_window = QWidget()
         self.control_window.setWindowTitle("MADIrwx Screen Annotator")
-        self.control_window.setFixedSize(900, 150)
+        self.control_window.setFixedSize(1000, 150)
         self.control_window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+
+        # Center the control window on the primary screen
+        screen_geometry = QGuiApplication.primaryScreen().geometry()
+        x = (screen_geometry.width() - self.control_window.width()) // 2
+        y = (screen_geometry.height() - self.control_window.height()) // 2
+        self.control_window.move(x, y)
+
+        # Hook close event for full app exit
+        self.control_window.closeEvent = self.closeEvent
+
         self.setup_professional_ui()
 
         # Create overlay
@@ -107,6 +118,12 @@ class ProfessionalScreenOverlay:
                                 "• Keyboard shortcuts\n\n"
                                 "Click 'Start Drawing' to begin!")
 
+    def closeEvent(self, event):
+        # Close overlay if open
+        if self.overlay.isVisible():
+            self.overlay.close()
+        self.app.quit()
+
     def load_icons(self):
         icon_files = {
             'pen': 'pen.png',
@@ -134,7 +151,6 @@ class ProfessionalScreenOverlay:
 
         # Left section - Header and buttons
         left_section = QVBoxLayout()
-        
         # Header
         header_label = QLabel("Screen Annotator Pro")
         header_label.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
@@ -144,15 +160,17 @@ class ProfessionalScreenOverlay:
         # Toggle and Clear buttons
         button_layout = QHBoxLayout()
         self.overlay_btn = QPushButton("Start Drawing")
+        self.overlay_btn.setFixedSize(130, 40)  # fixed size to maintain constant size
         self.overlay_btn.setStyleSheet("background-color: #27ae60; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
         self.overlay_btn.clicked.connect(self.toggle_overlay)
         button_layout.addWidget(self.overlay_btn)
 
         clear_btn = QPushButton("Clear All")
+        clear_btn.setFixedSize(130, 40)
         clear_btn.setStyleSheet("background-color: #e74c3c; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
         clear_btn.clicked.connect(self.clear_screen)
         button_layout.addWidget(clear_btn)
-        
+
         left_section.addLayout(button_layout)
         main_layout.addLayout(left_section)
 
@@ -182,14 +200,14 @@ class ProfessionalScreenOverlay:
 
         # Right section - Settings and Actions
         right_section = QVBoxLayout()
-        
+
         # Settings
         settings_layout = QHBoxLayout()
-        
         # Color
         color_label = QLabel("Color:")
         color_label.setFont(QFont("Segoe UI", 9))
         settings_layout.addWidget(color_label)
+
         self.color_button = QPushButton()
         self.color_button.setFixedSize(30, 20)
         self.color_button.setStyleSheet(f"background-color: {self.current_color.name()}; border-radius: 3px;")
@@ -200,6 +218,7 @@ class ProfessionalScreenOverlay:
         size_label = QLabel("Size:")
         size_label.setFont(QFont("Segoe UI", 9))
         settings_layout.addWidget(size_label)
+
         self.size_slider = QSlider(Qt.Orientation.Horizontal)
         self.size_slider.setMinimum(1)
         self.size_slider.setMaximum(20)
@@ -207,10 +226,11 @@ class ProfessionalScreenOverlay:
         self.size_slider.valueChanged.connect(self.update_size)
         self.size_slider.setFixedWidth(80)
         settings_layout.addWidget(self.size_slider)
+
         self.size_value = QLabel(str(self.brush_size))
         self.size_value.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         settings_layout.addWidget(self.size_value)
-        
+
         right_section.addLayout(settings_layout)
 
         # Actions - Undo/Redo
@@ -228,7 +248,7 @@ class ProfessionalScreenOverlay:
         self.redo_btn.setEnabled(False)
         self.redo_btn.clicked.connect(self.redo)
         actions_layout.addWidget(self.redo_btn)
-        
+
         right_section.addLayout(actions_layout)
         main_layout.addLayout(right_section)
 
@@ -236,8 +256,10 @@ class ProfessionalScreenOverlay:
         for t, btn in self.tool_buttons.items():
             if t == tool:
                 btn.setStyleSheet("background-color: #3498db; color: white; padding: 5px; border-radius: 5px;")
+                btn.setChecked(True)
             else:
                 btn.setStyleSheet("background-color: #7f8c8d; color: white; padding: 5px; border-radius: 5px;")
+                btn.setChecked(False)
         self.current_tool = tool
         cursors = {
             'pen': Qt.CursorShape.CrossCursor,
@@ -269,14 +291,15 @@ class ProfessionalScreenOverlay:
         self.overlay.showFullScreen()
         self.overlay.raise_()
         self.overlay_active = True
+        # Keep button size consistent here as well
         self.overlay_btn.setText("Hide Drawing")
-        self.overlay_btn.setStyleSheet("background-color: #e67e22; color: white; font: bold 12pt 'Segoe UI'; padding: 10px; border-radius: 5px;")
+        self.overlay_btn.setStyleSheet("background-color: #e67e22; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
 
     def hide_overlay(self):
         self.overlay.hide()
         self.overlay_active = False
         self.overlay_btn.setText("Start Drawing")
-        self.overlay_btn.setStyleSheet("background-color: #27ae60; color: white; font: bold 12pt 'Segoe UI'; padding: 10px; border-radius: 5px;")
+        self.overlay_btn.setStyleSheet("background-color: #27ae60; color: white; font: bold 10pt 'Segoe UI'; padding: 8px; border-radius: 5px;")
 
     def mousePressEvent(self, event):
         if not self.overlay_active:
@@ -284,12 +307,16 @@ class ProfessionalScreenOverlay:
         if event.button() == Qt.MouseButton.LeftButton:
             pos = self.view.mapToScene(event.position().toPoint())
             pen = QPen(self.current_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+            
             if self.current_tool == 'pen':
                 self.current_path = QPainterPath()
                 self.current_path.moveTo(pos)
                 self.current_item = self.scene.addPath(self.current_path, pen)
+                self.drawing = True
             elif self.current_tool in ['rectangle', 'circle', 'ellipse']:
                 self.start_pos = pos
+                self.drawing = True 
+            
             elif self.current_tool == 'text':
                 text, ok = QInputDialog.getText(self.control_window, "Add Text", "Enter text:")
                 if ok and text:
@@ -301,7 +328,7 @@ class ProfessionalScreenOverlay:
             elif self.current_tool == 'eraser':
                 self.save_state()
                 self.erase_at(pos)
-            self.drawing = True
+                self.drawing = True
 
     def mouseMoveEvent(self, event):
         if not self.overlay_active or not self.drawing:
@@ -326,7 +353,9 @@ class ProfessionalScreenOverlay:
                     end_x = self.start_pos.x() + size * (1 if dx >= 0 else -1)
                     end_y = self.start_pos.y() + size * (1 if dy >= 0 else -1)
                     rect = QRectF(self.start_pos, QPointF(end_x, end_y)).normalized()
-                self.current_item = self.scene.addEllipse(rect, pen)
+                    self.current_item = self.scene.addEllipse(rect, pen)
+                elif self.current_tool == 'ellipse':
+                    self.current_item = self.scene.addEllipse(rect, pen)
         elif self.current_tool == 'eraser':
             self.erase_at(pos)
 
@@ -338,7 +367,7 @@ class ProfessionalScreenOverlay:
                 if self.current_item:
                     self.drawings.append(self.current_item)
                     self.current_item = None
-                self.save_state()
+                    self.save_state()
             self.current_path = None
             self.start_pos = None
             self.drawing = False
@@ -386,12 +415,17 @@ class ProfessionalScreenOverlay:
 
     def update_undo_redo_buttons(self):
         self.undo_btn.setEnabled(bool(self.undo_stack))
-        self.undo_btn.setStyleSheet("background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.undo_stack else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.undo_btn.setStyleSheet(
+            "background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.undo_stack
+            else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
         self.redo_btn.setEnabled(bool(self.redo_stack))
-        self.redo_btn.setStyleSheet("background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.redo_stack else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
+        self.redo_btn.setStyleSheet(
+            "background-color: #3498db; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;" if self.redo_stack
+            else "background-color: #95a5a6; color: white; font: 8pt 'Segoe UI'; padding: 5px; border-radius: 5px;")
 
     def clear_screen(self):
-        reply = QMessageBox.question(self.control_window, "Clear All", "Are you sure you want to clear all drawings?")
+        reply = QMessageBox.question(self.control_window, "Clear All", "Are you sure you want to clear all drawings?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
             self.save_state()
             for item in list(self.drawings):
