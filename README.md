@@ -59,9 +59,6 @@ Screen Annotation is a Python-based desktop application built with PyQt6, design
 **Screen Annotation**  
 A Python-based screen annotation tool built with PyQt6, featuring a sleek, dark-themed UI and versatile drawing tools (pen, rectangle, circle, ellipse, text, eraser). Supports undo/redo, customizable brush sizes/colors, and keyboard shortcuts for seamless annotation during presentations or tutorials. Cross-platform and easy to use.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Contributing
 Contributions are welcome! Please submit a pull request or open an issue for bug reports or feature requests.
 
